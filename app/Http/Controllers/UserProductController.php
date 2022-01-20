@@ -14,7 +14,6 @@ class UserProductController extends Controller
 
     public function store(Request $request)
     {
-
         if ($this->getUserProductId($request) > 0) {
             if ($request->amount <= 0) {
                 return $this->destroy($request, $this->getUserProductId($request));
@@ -31,7 +30,12 @@ class UserProductController extends Controller
             ], 400);
         }
 
-        return UserProduct::create($request->all());
+        return UserProduct::create([
+            'user_id' => $request->user()->id,
+            'product_id' => $request->product_id,
+            'amount' => $request->amount,
+        ]);
+
     }
 
     public function destroy(Request $request, $id)
@@ -53,12 +57,10 @@ class UserProductController extends Controller
 
     public function getUserProductId(Request $request)
     {
-        $request->user_id->set($request->user()->id);
-
-        if (UserProduct::where('user_id', $request->user_id)
+        if (UserProduct::where('user_id', $request->user()->id)
             ->where('product_id', $request->product_id)->
             exists()) {
-            return UserProduct::where('user_id', $request->user_id)
+            return UserProduct::where('user_id', $request->user()->id)
                 ->where('product_id', $request->product_id)
                 ->first()->id;
         } else {
